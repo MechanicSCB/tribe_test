@@ -21,7 +21,62 @@ class ResultController extends Controller
 
     public function index(Request $request): array
     {
-        //
+        $validated = request()->validate([
+            'email' => 'nullable|email|exists:members,email',
+        ]);
+
+        // TODO extract to config?
+        $limit = 10;
+        $selfEmail = @$validated['email'];
+
+        // if self member has no results, then skip self fetching
+        if ($selfEmail && !Member::whereEmail(@$selfEmail)->has('results')->count()) {
+            $selfEmail = null;
+        }
+
+        // сразу получаем рейтинги всех пользователей, чтобы не запрашивать дополнительно данные для self
+        $query = DB::table('results')
+            ->whereNotNull('member_id')
+            ->join('members', 'members.id', '=', 'results.member_id')
+            ->selectRaw("min(milliseconds) as milliseconds, members.email, member_id")
+            ->groupBy('member_id')
+            ->orderBy('milliseconds');
+
+        // ускоряем запрос выбирая только первые записи, если не требуется определять место для self
+        if (!$selfEmail) {
+            $query->take($limit);
+        }
+
+        $topResults = $query->get();
+
+        $data = [];
+
+        foreach ($topResults as $key => $result) {
+            if ($result->email === $selfEmail) {
+                $data['self'] = [
+                    'email' => $result->email,
+                    'milliseconds' => $result->milliseconds,
+                    'place' => $key + 1,
+                ];
+
+                if ($key >= $limit) {
+                    break;
+                }
+            }
+
+            // Прекращаем заполнять top свыше лимита
+            if ($key >= $limit) {
+                continue;
+            }
+
+            $data['top'][] = [
+                'email' => substr_replace($result->email, '*****', 2, 5),
+                'milliseconds' => $result->milliseconds,
+                'place' => $key + 1,
+            ];
+        }
+
+        return ['data' => $data];
     }
 
     /**
