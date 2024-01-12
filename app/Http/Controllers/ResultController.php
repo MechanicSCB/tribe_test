@@ -11,67 +11,62 @@ use Inertia\ResponseFactory;
 
 class ResultController extends Controller
 {
-
     /**
      * Show top results list.
      *
      * @param Request $request
      * @return array<mixed>
      */
-
     public function index(Request $request): array
     {
-        $validated = request()->validate([
+        // нужно ли реализовывать кэширование в каком-либо виде?
+        $data['top'] = [];
+
+        $validated = $request->validate([
+            // TODO нужно ли проверять существование email в таблице members и валидность email с возвратом errors?
             'email' => 'nullable|email|exists:members,email',
         ]);
 
-        $limit = config('results.top.limit') ?? 10;
+        $limit = config('results.top.limit'); // 10
+
         $selfEmail = @$validated['email'];
 
-        // if self member has no results, then skip self fetching
-        if ($selfEmail && !Member::whereEmail(@$selfEmail)->has('results')->count()) {
-            $selfEmail = null;
+        // TODO вынести запросы и логику в отдельные методы/классы в зависимости от структуры проекта
+        // Получаем значение лучшего результата игрока (self)
+        $selfMember = $selfEmail ? Member::whereEmail(@$selfEmail)->first() : null;
+
+        if ($bestTime = $selfMember?->bestTime) {
+            $betterCount = DB::table('results')
+                ->where('milliseconds', '<=', $bestTime - 1)
+                ->whereNotNull('member_id')
+                ->count(DB::raw('DISTINCT member_id'));
+
+            $data['self'] = [
+                'email' => $selfMember->email,
+                'milliseconds' => $bestTime,
+                'place' => $betterCount + 1,
+            ];
         }
 
-        // сразу получаем рейтинги всех пользователей, чтобы не запрашивать дополнительно данные для self
-        $query = DB::table('results')
+        $topResults = DB::table('results')
             ->whereNotNull('member_id')
             ->join('members', 'members.id', '=', 'results.member_id')
             ->selectRaw("min(milliseconds) as milliseconds, members.email, member_id")
             ->groupBy('member_id')
-            ->orderBy('milliseconds');
-
-        // ускоряем запрос выбирая только первые записи, если не требуется определять место для self
-        if (!$selfEmail) {
-            $query->take($limit);
-        }
-
-        $topResults = $query->get();
-
-        $data = [];
+            ->orderBy('milliseconds')
+            ->take($limit)
+            ->get();
 
         foreach ($topResults as $key => $result) {
-            if ($result->email === $selfEmail) {
-                $data['self'] = [
-                    'email' => $result->email,
-                    'milliseconds' => $result->milliseconds,
-                    'place' => $key + 1,
-                ];
-
-                if ($key >= $limit) {
-                    break;
-                }
-            }
-
-            // Прекращаем заполнять top свыше лимита
-            if ($key >= $limit) {
-                continue;
-            }
+            $prev = @$data['top'][$key - 1];
+            // сделал одинаковые места для игроков с одинаковым результатом (например place = 1,2,2,4 если второй результат имеют сразу два игрока)
+            $place = $result->milliseconds === @$prev['milliseconds'] ? $prev['place'] : $key + 1;
 
             $data['top'][] = [
+                // можно скрывать email и по-умнее, рассчитав длину строки до @, но я предположил, что это не принципиально
                 'email' => substr_replace($result->email, '*****', 2, 5),
                 'milliseconds' => $result->milliseconds,
-                'place' => $key + 1,
+                'place' => $place,
             ];
         }
 
