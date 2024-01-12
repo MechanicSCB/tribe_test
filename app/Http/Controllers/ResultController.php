@@ -18,8 +18,16 @@ class ResultController extends Controller
      *      path="/api/top",
      *      operationId="GetTopList",
      *      description="The members top results list",
-     *
-     *      @OA\Response(response="200", description="The members top results list")
+     *           @OA\Parameter(
+     *            description="Member's email",
+     *            in="query",
+     *            name="email",
+     *            required=false,
+     *            @OA\Schema(type="string"),
+     *        ),
+     * *
+     *      @OA\Response(response="200", description="The members top results list"),
+     *      @OA\Response(response="422", description="Validation error")
      *  )
      *
      * @OA\Info(title="Tribe test", description="Tribe test API", version="1.0")
@@ -85,6 +93,29 @@ class ResultController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @OA\Post(
+     *       path="/api/results",
+     *       operationId="Create result",
+     *       description="Create member's result by email",
+     *      @OA\Parameter(
+     *           description="Result in milliseconds",
+     *           in="query",
+     *           name="milliseconds",
+     *           required=true,
+     *           @OA\Schema(type="integer"),
+     *       ),
+     *      @OA\Parameter(
+     *           description="Member's email",
+     *           in="query",
+     *           name="email",
+     *           required=false,
+     *           @OA\Schema(type="string"),
+     *       ),
+     *  *
+     *       @OA\Response(response="200", description="The members top results list"),
+     *       @OA\Response(response="422", description="Validation error")
+     *   )
      *
      * @param Request $request
      * @return array<mixed>

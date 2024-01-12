@@ -7,8 +7,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost",
-            "description": "Local"
+            "url": "http://localhost"
         }
     ],
     "paths": {
@@ -21,7 +20,8 @@
                     {
                         "name": "email",
                         "in": "query",
-                        "description": "email",
+                        "description": "Member's email",
+                        "required": false,
                         "schema": {
                             "type": "string"
                         }
@@ -32,7 +32,42 @@
                         "description": "The members top results list"
                     },
                     "422": {
-                        "description": "Errors message"
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/results": {
+            "post": {
+                "summary": "Store a newly created resource in storage.",
+                "description": "Create member's result by email",
+                "operationId": "Create result",
+                "parameters": [
+                    {
+                        "name": "milliseconds",
+                        "in": "query",
+                        "description": "Result in milliseconds",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "Member's email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The members top results list"
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 }
             }
