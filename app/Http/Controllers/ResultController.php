@@ -25,8 +25,7 @@ class ResultController extends Controller
             'email' => 'nullable|email|exists:members,email',
         ]);
 
-        // TODO extract to config?
-        $limit = 10;
+        $limit = config('results.top.limit') ?? 10;
         $selfEmail = @$validated['email'];
 
         // if self member has no results, then skip self fetching

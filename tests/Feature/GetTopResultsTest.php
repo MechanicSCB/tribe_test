@@ -98,7 +98,6 @@ class GetTopResultsTest extends TestCase
 
         $response = $this->get(route('results.top', ['email' => '']));
 
-        // TODO get limit from config?
-        $this->assertCount(10, $response->json('data.top'));
+        $this->assertCount(config('results.top.limit') ?? 10, $response->json('data.top'));
     }
 }
