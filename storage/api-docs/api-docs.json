@@ -5,15 +5,34 @@
         "description": "Tribe test API",
         "version": "1.0"
     },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Local"
+        }
+    ],
     "paths": {
         "/api/top": {
             "get": {
                 "summary": "Show top results list.",
                 "description": "The members top results list",
                 "operationId": "GetTopList",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "email",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "The members top results list"
+                    },
+                    "422": {
+                        "description": "Errors message"
                     }
                 }
             }
