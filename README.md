@@ -21,6 +21,11 @@ sail artisan key:generate
 sail artisan migrate:fresh --seed
 ```
 
+(optional) run PHPUnit tests
+```
+sail test
+```
+
 (optional) run php stan analyse
 ```
 vendor/bin/phpstan analyse -l 7 tests app/Http/Controllers/ResultController.php
