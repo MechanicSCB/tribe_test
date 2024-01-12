@@ -14,6 +14,16 @@ class ResultController extends Controller
     /**
      * Show top results list.
      *
+     * @OA\Get(
+     *      path="/api/top",
+     *      operationId="GetTopList",
+     *      description="The members top results list",
+     *
+     *      @OA\Response(response="200", description="The members top results list")
+     *  )
+     *
+     * @OA\Info(title="Tribe test", description="Tribe test API", version="1.0")
+     *
      * @param Request $request
      * @return array<mixed>
      */

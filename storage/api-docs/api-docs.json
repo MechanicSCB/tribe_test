@@ -1,0 +1,22 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Tribe test",
+        "description": "Tribe test API",
+        "version": "1.0"
+    },
+    "paths": {
+        "/api/top": {
+            "get": {
+                "summary": "Show top results list.",
+                "description": "The members top results list",
+                "operationId": "GetTopList",
+                "responses": {
+                    "200": {
+                        "description": "The members top results list"
+                    }
+                }
+            }
+        }
+    }
+}
