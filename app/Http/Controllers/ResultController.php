@@ -32,6 +32,18 @@ class ResultController extends Controller
      */
     public function store(Request $request): array
     {
-        //
+        $validated = $request->validate([
+            // TODO проверять ли существование email в таблице members?
+            'email' => 'nullable|email|exists:members,email',
+            'milliseconds' => 'required|numeric|min:0',
+        ]);
+
+        $input = ['milliseconds' => @$validated['milliseconds']];
+
+        if (@$validated['email']) {
+            $input['member_id'] = Member::whereEmail($validated['email'])->first()?->id;
+        }
+
+        return Result::query()->create($input)->toArray();
     }
 }
