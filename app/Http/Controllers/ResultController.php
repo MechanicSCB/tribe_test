@@ -6,8 +6,6 @@ use App\Models\Member;
 use App\Models\Result;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Inertia\Response;
-use Inertia\ResponseFactory;
 
 class ResultController extends Controller
 {
@@ -47,25 +45,25 @@ class ResultController extends Controller
 
         $limit = config('results.top.limit'); // 10
 
-        $selfEmail = @$validated['email'];
-
         // TODO вынести запросы и логику в отдельные методы/классы в зависимости от структуры проекта
-        // Получаем значение лучшего результата игрока (self)
-        $selfMember = $selfEmail ? Member::whereEmail(@$selfEmail)->first() : null;
 
-        if ($bestTime = $selfMember?->bestTime) {
-            $betterCount = DB::table('results')
-                ->where('milliseconds', '<=', $bestTime - 1)
+        // Получаем значение лучшего результата игрока (self)
+        $selfMember = @$validated['email'] ? Member::whereEmail($validated['email'])->first() : null;
+
+        if ($selfMember?->bestTime) {
+            $membersWithBetterCount = DB::table('results')
+                ->where('milliseconds', '<=', $selfMember->bestTime - 1)
                 ->whereNotNull('member_id')
                 ->count(DB::raw('DISTINCT member_id'));
 
             $data['self'] = [
                 'email' => $selfMember->email,
-                'milliseconds' => $bestTime,
-                'place' => $betterCount + 1,
+                'milliseconds' => $selfMember->bestTime,
+                'place' => $membersWithBetterCount + 1,
             ];
         }
 
+        // Получаем top results
         $topResults = DB::table('results')
             ->whereNotNull('member_id')
             ->join('members', 'members.id', '=', 'results.member_id')
